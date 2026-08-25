@@ -1,9 +1,9 @@
 {
-  "name": "rcp",
+  "name": "nezar",
    "icon": "icon.png",   
-  "displayName": "RCP",
-  "description": "RCP with work for AI",
-  "version": "0.2.0",
+  "displayName": "nezar",
+  "description": "nezar with work for AI",
+  "version": "0.3.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -16,32 +16,47 @@
   "onCommand:RCP.currentFile",
   "onCommand:RCP.treeList"
 ],
-  "contributes": {
-    "commands": [
-      {
-        "command": "RCP.mergeFiles",
-        "title": "RCP: Собрать все файлы в один",
-        "category": "RCP"
-      },
-       {
-        "command": "RCP.minification",
-        "title": "RCP: Собрать все файлы в один без пробелов",
-        "category": "RCP"
-      },
-        {
+ "contributes": {
+  "commands": [
+    {
+      "command": "RCP.mergeFiles",
+      "title": "RCP: Собрать все файлы в один",
+      "category": "RCP"
+    },
+    {
+      "command": "RCP.minification",
+      "title": "RCP: Собрать все файлы в один без пробелов",
+      "category": "RCP"
+    },
+    {
       "command": "RCP.currentFile",
       "title": "RCP: Копировать текущий файл",
       "category": "RCP"
     },
-
-  {
-    "command": "RCP.treeList",
-    "title": "RCP: Дерево проекта",
-    "category": "RCP"
-  }
-    
+    {
+      "command": "RCP.treeList",
+      "title": "RCP: Дерево проекта",
+      "category": "RCP"
+    }
+  ],
+  "viewsContainers": {
+    "activitybar": [
+      {
+        "id": "rcp-sidebar",
+        "title": "RCP",
+        "icon": "resources/icon.svg"
+      }
     ]
   },
+  "views": {
+    "rcp-sidebar": [
+      {
+        "id": "rcp-panel",
+        "name": "RCP"
+      }
+    ]
+  }
+},
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
