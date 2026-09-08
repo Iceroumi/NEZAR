@@ -3,7 +3,7 @@
    "icon": "icon.png",   
   "displayName": "nezar",
   "description": "nezar with work for AI",
-  "version": "0.3.1",
+  "version": "0.4.3",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -11,12 +11,9 @@
     "Other"
   ],
  "activationEvents": [
-  "onCommand:RCP.mergeFiles",
-  "onCommand:RCP.minification",
-  "onCommand:RCP.currentFile",
-  "onCommand:RCP.treeList"
+ "*"
 ],
- "contributes": {
+"contributes": {
   "commands": [
     {
       "command": "RCP.mergeFiles",
@@ -51,8 +48,16 @@
   "views": {
     "rcp-sidebar": [
       {
-        "id": "rcp-panel",
-        "name": "RCP"
+        "id": "rcp-section1",
+        "name": "быстрые функции"
+      },
+      {
+        "id": "rcp-section2",
+        "name": "Раздел 2 (пусто)"
+      },
+      {
+        "id": "rcp-section3",
+        "name": "Раздел 3 (пусто)"
       }
     ]
   }
