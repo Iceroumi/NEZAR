@@ -1,9 +1,9 @@
 {
-  "name": "rcp",
+  "name": "nezar",
    "icon": "icon.png",   
-  "displayName": "RCP",
-  "description": "RCP with work for AI",
-  "version": "0.2.0",
+  "displayName": "nezar",
+  "description": "nezar with work for AI",
+  "version": "0.4.3",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -11,37 +11,57 @@
     "Other"
   ],
  "activationEvents": [
-  "onCommand:RCP.mergeFiles",
-  "onCommand:RCP.minification",
-  "onCommand:RCP.currentFile",
-  "onCommand:RCP.treeList"
+ "*"
 ],
-  "contributes": {
-    "commands": [
-      {
-        "command": "RCP.mergeFiles",
-        "title": "RCP: Собрать все файлы в один",
-        "category": "RCP"
-      },
-       {
-        "command": "RCP.minification",
-        "title": "RCP: Собрать все файлы в один без пробелов",
-        "category": "RCP"
-      },
-        {
+"contributes": {
+  "commands": [
+    {
+      "command": "RCP.mergeFiles",
+      "title": "RCP: Собрать все файлы в один",
+      "category": "RCP"
+    },
+    {
+      "command": "RCP.minification",
+      "title": "RCP: Собрать все файлы в один без пробелов",
+      "category": "RCP"
+    },
+    {
       "command": "RCP.currentFile",
       "title": "RCP: Копировать текущий файл",
       "category": "RCP"
     },
-
-  {
-    "command": "RCP.treeList",
-    "title": "RCP: Дерево проекта",
-    "category": "RCP"
-  }
-    
+    {
+      "command": "RCP.treeList",
+      "title": "RCP: Дерево проекта",
+      "category": "RCP"
+    }
+  ],
+  "viewsContainers": {
+    "activitybar": [
+      {
+        "id": "rcp-sidebar",
+        "title": "RCP",
+        "icon": "resources/icon.svg"
+      }
     ]
   },
+  "views": {
+    "rcp-sidebar": [
+      {
+        "id": "rcp-section1",
+        "name": "быстрые функции"
+      },
+      {
+        "id": "rcp-section2",
+        "name": "Раздел 2 (пусто)"
+      },
+      {
+        "id": "rcp-section3",
+        "name": "Раздел 3 (пусто)"
+      }
+    ]
+  }
+},
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
