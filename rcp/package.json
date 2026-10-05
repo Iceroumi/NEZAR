@@ -3,7 +3,7 @@
   "icon": "icon.png",
   "displayName": "Nezar",
   "description": "Мгновенный сбор кода для контекста (для AI )",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "engines": {
     "vscode": "^1.85.0"
   },

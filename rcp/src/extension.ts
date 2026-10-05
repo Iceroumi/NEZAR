@@ -188,9 +188,9 @@ class Section1Provider implements vscode.WebviewViewProvider {
 
     private getHtml(): string {
         const commands = [
-            { id: 'merge', label: '📁 Собрать все файлы в один' },
-             { id: 'open', label: '📂 Собрать открытые файлы' },
-            { id: 'minify', label: '⚡ Собрать все файлы без пробелов' },
+            { id: 'merge', label: '📁  все файлы в один' },
+             { id: 'open', label: '📂 открытые файлы' },
+            { id: 'minify', label: '⚡ все файлы без пробелов' },
             { id: 'currentFile', label: '📄 Копировать текущий файл' },
             { id: 'tree', label: '🌳 Дерево проекта' },
             { id: 'accumulateToggle',label: '⏯ Вкл/выкл накопитель',              action: 'Переключить' },
@@ -199,7 +199,7 @@ class Section1Provider implements vscode.WebviewViewProvider {
         ];
 
         const items = commands.map(cmd => `
-            <li style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0; padding: 4px; background: var(--vscode-list-inactiveSelectionBackground); border-radius: 4px;">
+            <li style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0; padding: 4px;  border-radius: 4px;">
                 <span>${cmd.label}</span>
                 <button onclick="copyCommand('${cmd.id}')" style="background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Копировать</button>
             </li>
@@ -217,7 +217,7 @@ class Section1Provider implements vscode.WebviewViewProvider {
             </style>
         </head>
         <body>
-            <h3>Быстрые действия</h3>
+           
             <ul>${items}</ul>
             <script>
                 const vscode = acquireVsCodeApi();
