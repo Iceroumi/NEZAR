@@ -1,67 +1,75 @@
 {
   "name": "nezar",
-   "icon": "icon.png",   
-  "displayName": "nezar",
-  "description": "nezar with work for AI",
-  "version": "0.4.3",
+  "icon": "icon.png",
+  "displayName": "Nezar",
+  "description": "Мгновенный сбор кода для контекста (для AI )",
+  "version": "0.6.0",
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": [
-    "Other"
+  "categories": ["Other"],
+  "activationEvents": [
+    "onView:nezar-section1",
+    "onView:nezar-section2",
+    "onView:nezar-section3"
   ],
- "activationEvents": [
- "*"
-],
-"contributes": {
-  "commands": [
-    {
-      "command": "RCP.mergeFiles",
-      "title": "RCP: Собрать все файлы в один",
-      "category": "RCP"
+  "contributes": {
+    "commands": [
+      {
+        "command": "nezar.mergeFiles",
+        "title": "Собрать все файлы в один",
+        "category": "Nezar"
+      },
+      {
+        "command": "nezar.minifyFiles",
+        "title": "Собрать все файлы без пробелов (минификация)",
+        "category": "Nezar"
+      },
+      {
+        "command": "nezar.copyCurrentFile",
+        "title": "Копировать текущий файл",
+        "category": "Nezar"
+      },
+      {
+        "command": "nezar.treeList",
+        "title": "Дерево проекта",
+        "category": "Nezar"
+      },
+      {
+  "command": "nezar.copyOpenFiles",
+  "title": "Собрать открытые файлы",
+  "category": "Nezar"
+}
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nezar-sidebar",
+          "title": "Nezar",
+          "icon": "resources/icon.svg"
+        }
+      ]
     },
-    {
-      "command": "RCP.minification",
-      "title": "RCP: Собрать все файлы в один без пробелов",
-      "category": "RCP"
-    },
-    {
-      "command": "RCP.currentFile",
-      "title": "RCP: Копировать текущий файл",
-      "category": "RCP"
-    },
-    {
-      "command": "RCP.treeList",
-      "title": "RCP: Дерево проекта",
-      "category": "RCP"
+    "views": {
+      "nezar-sidebar": [
+        {
+          "id": "nezar-section1",
+          "name": "Быстрые действия",
+          "type": "webview"
+        },
+        {
+          "id": "nezar-section2",
+          "name": "Дерево контекста",
+          "type": "webview"
+        },
+        {
+          "id": "nezar-section3",
+          "name": "прочие",
+          "type": "webview"
+        }
+      ]
     }
-  ],
-  "viewsContainers": {
-    "activitybar": [
-      {
-        "id": "rcp-sidebar",
-        "title": "RCP",
-        "icon": "resources/icon.svg"
-      }
-    ]
   },
-  "views": {
-    "rcp-sidebar": [
-      {
-        "id": "rcp-section1",
-        "name": "быстрые функции"
-      },
-      {
-        "id": "rcp-section2",
-        "name": "Раздел 2 (пусто)"
-      },
-      {
-        "id": "rcp-section3",
-        "name": "Раздел 3 (пусто)"
-      }
-    ]
-  }
-},
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",

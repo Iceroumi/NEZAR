@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// ---------- Вспомогательные функции для команд ----------
+// ---------- Вспомогательные функции ----------
 const codeExtensions = [
   'ts', 'js', 'tsx', 'jsx', 'html', 'css', 'scss', 'less',
   'json', 'py', 'java', 'cpp', 'c', 'h', 'cs', 'go', 'rs',
@@ -10,7 +10,7 @@ const codeExtensions = [
   'md', 'txt', 'vue', 'svelte'
 ];
 
-const skipDirs = ['node_modules', '.git', 'dist', 'build', '.vscode', 'out', 'bin', 'obj'];
+const skipDirs = ['node_modules', '.git', 'dist', 'NEZAR_AI', 'build', '.vscode', 'out', 'bin', 'obj'];
 
 interface FileEntry {
   relative: string;
@@ -18,7 +18,7 @@ interface FileEntry {
 }
 
 function getOutputDir(rootPath: string): string {
-  const outputDir = path.join(rootPath, 'RCP_AI');
+  const outputDir = path.join(rootPath, 'NEZAR_AI');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
@@ -49,13 +49,14 @@ function collectFiles(rootPath: string): FileEntry[] {
   return files;
 }
 
+// ---------- Провайдер для первого раздела ----------
 class Section1Provider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
 
     resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
         webviewView.webview.options = { enableScripts: true };
-        this.updateView();
+        webviewView.webview.html = this.getHtml();
 
         webviewView.webview.onDidReceiveMessage(async message => {
             if (message.command === 'copy') {
@@ -69,112 +70,138 @@ class Section1Provider implements vscode.WebviewViewProvider {
                 }
                 const rootPath = workspaceFolders[0].uri.fsPath;
 
-                switch (commandId) {
-                    case 'merge': {
-                        const files = collectFiles(rootPath);
-                        const lines: string[] = [];
-                        lines.push('=== MERGED CODE ===');
-                        lines.push(`Папка: ${path.basename(rootPath)}`);
-                        lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
-                        lines.push(`Файлов: ${files.length}`);
-                        lines.push('');
-                        for (const file of files) {
-                            lines.push(`========================================`);
-                            lines.push(`Файл: ${file.relative}`);
-                            lines.push(`========================================`);
-                            lines.push(file.content);
+                try {
+                    switch (commandId) {
+                        case 'merge': {
+                            const files = collectFiles(rootPath);
+                            const lines: string[] = [];
+                            lines.push('=== MERGED CODE ===');
+                            lines.push(`Папка: ${path.basename(rootPath)}`);
+                            lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
+                            lines.push(`Файлов: ${files.length}`);
                             lines.push('');
+                            for (const file of files) {
+                                lines.push(`========================================`);
+                                lines.push(`Файл: ${file.relative}`);
+                                lines.push(`========================================`);
+                                lines.push(file.content);
+                                lines.push('');
+                            }
+                            resultText = lines.join('\n');
+                            break;
                         }
-                        resultText = lines.join('\n');
-                        break;
-                    }
-                    case 'minify': {
-                        const files = collectFiles(rootPath);
-                        const parts: string[] = [];
-                        parts.push(`/* MERGED MINIFIED | ${path.basename(rootPath)} | ${new Date().toLocaleString('ru-RU')} | Файлов: ${files.length} */`);
-                        for (const file of files) {
-                            const minified = file.content.split('\n').map(l => l.trim()).filter(l => l.length > 0).join(' ');
-                            parts.push(`/*=${file.relative}=*/${minified}`);
+                        case 'minify': {
+                            const files = collectFiles(rootPath);
+                            const parts: string[] = [];
+                            parts.push(`/* MERGED MINIFIED | ${path.basename(rootPath)} | ${new Date().toLocaleString('ru-RU')} | Файлов: ${files.length} */`);
+                            for (const file of files) {
+                                const minified = file.content.split('\n').map(l => l.trim()).filter(l => l.length > 0).join(' ');
+                                parts.push(`/*=${file.relative}=*/${minified}`);
+                            }
+                            resultText = parts.join('\n');
+                            break;
                         }
-                        resultText = parts.join('\n');
-                        break;
-                    }
-                    case 'currentFile': {
-                        const editor = vscode.window.activeTextEditor;
-                        if (!editor) {
-                            vscode.window.showErrorMessage('Нет открытого файла!');
-                            return;
-                        }
-                        resultText = editor.document.getText();
-                        break;
-                    }
-                    case 'tree': {
-                        const lines: string[] = [];
-                        lines.push(`Дерево проекта: ${path.basename(rootPath)}`);
-                        lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
-                        lines.push('');
-                        function walkDir(dir: string, prefix: string) {
-                            let items: fs.Dirent[];
-                            try {
-                                items = fs.readdirSync(dir, { withFileTypes: true });
-                            } catch {
+                        case 'currentFile': {
+                            const editor = vscode.window.activeTextEditor;
+                            if (!editor) {
+                                vscode.window.showErrorMessage('Нет открытого файла!');
                                 return;
                             }
-                            const sorted = items
-                                .filter(item => {
-                                    if (item.name.startsWith('.')) return false;
-                                    if (item.isDirectory() && skipDirs.includes(item.name)) return false;
-                                    return true;
-                                })
-                                .sort((a, b) => {
-                                    if (a.isDirectory() && !b.isDirectory()) return -1;
-                                    if (!a.isDirectory() && b.isDirectory()) return 1;
-                                    return a.name.localeCompare(b.name);
-                                });
-                            sorted.forEach((item, index) => {
-                                const isLast = index === sorted.length - 1;
-                                const connector = isLast ? '└── ' : '├── ';
-                                const newPrefix = isLast ? '    ' : '│   ';
-                                const fullPath = path.join(dir, item.name);
-                                lines.push(`${prefix}${connector}${item.name}`);
-                                if (item.isDirectory()) {
-                                    walkDir(fullPath, prefix + newPrefix);
-                                }
-                            });
+                            resultText = editor.document.getText();
+                            break;
                         }
-                        lines.push(path.basename(rootPath) + '/');
-                        walkDir(rootPath, '');
-                        resultText = lines.join('\n');
-                        break;
+                        case 'tree': {
+                            const lines: string[] = [];
+                            lines.push(`Дерево проекта: ${path.basename(rootPath)}`);
+                            lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
+                            lines.push('');
+                            function walkDir(dir: string, prefix: string) {
+                                let items: fs.Dirent[];
+                                try {
+                                    items = fs.readdirSync(dir, { withFileTypes: true });
+                                } catch {
+                                    return;
+                                }
+                                const sorted = items
+                                    .filter(item => {
+                                        if (item.name.startsWith('.')) return false;
+                                        if (item.isDirectory() && skipDirs.includes(item.name)) return false;
+                                        return true;
+                                    })
+                                    .sort((a, b) => {
+                                        if (a.isDirectory() && !b.isDirectory()) return -1;
+                                        if (!a.isDirectory() && b.isDirectory()) return 1;
+                                        return a.name.localeCompare(b.name);
+                                    });
+                                sorted.forEach((item, index) => {
+                                    const isLast = index === sorted.length - 1;
+                                    const connector = isLast ? '└── ' : '├── ';
+                                    const newPrefix = isLast ? '    ' : '│   ';
+                                    const fullPath = path.join(dir, item.name);
+                                    lines.push(`${prefix}${connector}${item.name}`);
+                                    if (item.isDirectory()) {
+                                        walkDir(fullPath, prefix + newPrefix);
+                                    }
+                                });
+                            }
+                            lines.push(path.basename(rootPath) + '/');
+                            walkDir(rootPath, '');
+                            resultText = lines.join('\n');
+                            break;
+                        }
+                       
+                        case 'open': {
+                            const documents = vscode.workspace.textDocuments;
+                            if (documents.length === 0) {
+                                vscode.window.showErrorMessage('Нет открытых файлов!');
+                                return;
+                            }
+                            const lines: string[] = [];
+                            lines.push('=== OPEN FILES ===');
+                            lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
+                            lines.push(`Файлов: ${documents.length}`);
+                            lines.push('');
+                            for (const doc of documents) {
+                                const fileName = path.basename(doc.uri.fsPath);
+                                lines.push(`========================================`);
+                                lines.push(`Файл: ${fileName} (${doc.languageId})`);
+                                lines.push(`========================================`);
+                                lines.push(doc.getText());
+                                lines.push('');
+                            }
+                            resultText = lines.join('\n');
+                            break;
+                        }
+                        default:
+                            vscode.window.showErrorMessage('Неизвестная команда');
+                            return;
                     }
-                    default:
-                        vscode.window.showErrorMessage('Неизвестная команда');
-                        return;
-                }
 
-                await vscode.env.clipboard.writeText(resultText);
-                vscode.window.showInformationMessage('Результат скопирован в буфер обмена!');
+                    await vscode.env.clipboard.writeText(resultText);
+                    vscode.window.showInformationMessage('✅ Результат скопирован в буфер обмена!');
+                } catch (err: any) {
+                    vscode.window.showErrorMessage('Ошибка: ' + err.message);
+                }
             }
         });
-    }
-
-    private updateView() {
-        if (!this._view) return;
-        this._view.webview.html = this.getHtml();
     }
 
     private getHtml(): string {
         const commands = [
             { id: 'merge', label: '📁 Собрать все файлы в один' },
+             { id: 'open', label: '📂 Собрать открытые файлы' },
             { id: 'minify', label: '⚡ Собрать все файлы без пробелов' },
             { id: 'currentFile', label: '📄 Копировать текущий файл' },
-            { id: 'tree', label: '🌳 Дерево проекта' }
+            { id: 'tree', label: '🌳 Дерево проекта' },
+            { id: 'accumulateToggle',label: '⏯ Вкл/выкл накопитель',              action: 'Переключить' },
+            { id: 'accumulateOpen',  label: '🧲 Открыть накопитель',              action: 'Открыть' },
+            { id: 'accumulateClear', label: '🗑 Очистить накопитель',              action: 'Очистить' },
         ];
 
         const items = commands.map(cmd => `
-            <li style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0;">
-                <span style="flex:1;">${cmd.label}</span>
-                <button onclick="copyCommand('${cmd.id}')">Копировать</button>
+            <li style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0; padding: 4px; background: var(--vscode-list-inactiveSelectionBackground); border-radius: 4px;">
+                <span>${cmd.label}</span>
+                <button onclick="copyCommand('${cmd.id}')" style="background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Копировать</button>
             </li>
         `).join('');
 
@@ -182,15 +209,15 @@ class Section1Provider implements vscode.WebviewViewProvider {
         <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
             <style>
                 body { padding: 10px; font-family: var(--vscode-font-family); }
                 ul { list-style: none; padding: 0; }
-                li { padding: 6px 8px; background: var(--vscode-list-inactiveSelectionBackground); border-radius: 4px; margin-bottom: 4px; }
-                button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
                 button:hover { background: var(--vscode-button-hoverBackground); }
             </style>
         </head>
         <body>
+            <h3>Быстрые действия</h3>
             <ul>${items}</ul>
             <script>
                 const vscode = acquireVsCodeApi();
@@ -204,14 +231,14 @@ class Section1Provider implements vscode.WebviewViewProvider {
     }
 }
 
-// ---------- Провайдер для пустых разделов ----------
 class EmptySectionProvider implements vscode.WebviewViewProvider {
   constructor(private message: string) {}
   resolveWebviewView(webviewView: vscode.WebviewView) {
+    webviewView.webview.options = { enableScripts: true };
     webviewView.webview.html = `
       <!DOCTYPE html>
       <html>
-      <body style="padding: 10px; color: var(--vscode-descriptionForeground);">
+      <body style="padding: 10px; color: var(--vscode-descriptionForeground); font-family: var(--vscode-font-family);">
         <p>${this.message}</p>
       </body>
       </html>
@@ -219,11 +246,13 @@ class EmptySectionProvider implements vscode.WebviewViewProvider {
   }
 }
 
-// ---------- Активация расширения ----------
+// ---------- Активация ----------
 export function activate(context: vscode.ExtensionContext) {
-  // ---- Регистрация команд ----
+  console.log('🚀 NEZAR extension activated!');
+
+  // ---- Команды ----
   const mergeCmd = vscode.commands.registerCommand(
-    'RCP.mergeFiles',
+    'nezar.mergeFiles',
     async () => {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -249,12 +278,12 @@ export function activate(context: vscode.ExtensionContext) {
       fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
       const doc = await vscode.workspace.openTextDocument(outputPath);
       await vscode.window.showTextDocument(doc);
-      vscode.window.showInformationMessage(`Готово! ${files.length} файлов → RCP_AI/merged-code.txt`);
+      vscode.window.showInformationMessage(`Готово! ${files.length} файлов → NEZAR_AI/merged-code.txt`);
     }
   );
 
   const miniCmd = vscode.commands.registerCommand(
-    'RCP.minification',
+    'nezar.minifyFiles',
     async () => {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -273,12 +302,12 @@ export function activate(context: vscode.ExtensionContext) {
       fs.writeFileSync(outputPath, parts.join('\n'), 'utf-8');
       const doc = await vscode.workspace.openTextDocument(outputPath);
       await vscode.window.showTextDocument(doc);
-      vscode.window.showInformationMessage(`Готово! ${files.length} файлов → RCP_AI/merged-mini.txt`);
+      vscode.window.showInformationMessage(`Готово! ${files.length} файлов → NEZAR_AI/merged-mini.txt`);
     }
   );
 
   const currentFileCmd = vscode.commands.registerCommand(
-    'RCP.currentFile',
+    'nezar.copyCurrentFile',
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -291,8 +320,34 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const openFilesCmd = vscode.commands.registerCommand(
+    'nezar.copyOpenFiles',
+    async () => {
+      const documents = vscode.workspace.textDocuments;
+      if (documents.length === 0) {
+        vscode.window.showErrorMessage('Нет открытых файлов!');
+        return;
+      }
+      const lines: string[] = [];
+      lines.push('=== OPEN FILES ===');
+      lines.push(`Дата: ${new Date().toLocaleString('ru-RU')}`);
+      lines.push(`Файлов: ${documents.length}`);
+      lines.push('');
+      for (const doc of documents) {
+        const fileName = path.basename(doc.uri.fsPath);
+        lines.push(`========================================`);
+        lines.push(`Файл: ${fileName} (${doc.languageId})`);
+        lines.push(`========================================`);
+        lines.push(doc.getText());
+        lines.push('');
+      }
+      const resultText = lines.join('\n');
+      await vscode.env.clipboard.writeText(resultText);
+      vscode.window.showInformationMessage(`✅ ${documents.length} открытых файлов скопированы в буфер!`);
+    }
+  );
   const treeListCmd = vscode.commands.registerCommand(
-    'RCP.treeList',
+    'nezar.treeList',
     async () => {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -339,18 +394,22 @@ export function activate(context: vscode.ExtensionContext) {
       fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
       const doc = await vscode.workspace.openTextDocument(outputPath);
       await vscode.window.showTextDocument(doc);
-      vscode.window.showInformationMessage('Дерево сохранено → RCP_AI/tree-list.txt');
+      vscode.window.showInformationMessage('Дерево сохранено → NEZAR_AI/tree-list.txt');
     }
   );
 
   // ---- Регистрация провайдеров для боковой панели ----
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider('rcp-section1', new Section1Provider()),
-    vscode.window.registerWebviewViewProvider('rcp-section2', new EmptySectionProvider('Раздел 2 – пока пусто')),
-    vscode.window.registerWebviewViewProvider('rcp-section3', new EmptySectionProvider('Раздел 3 – пока пусто'))
-  );
+  try {
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider('nezar-section1', new Section1Provider()),
+      vscode.window.registerWebviewViewProvider('nezar-section2', new EmptySectionProvider('Раздел 2 – пока пусто')),
+      vscode.window.registerWebviewViewProvider('nezar-section3', new EmptySectionProvider('Раздел 3 – пока пусто'))
+    );
+    console.log('✅ Все провайдеры NEZAR зарегистрированы');
+  } catch (err) {
+    console.error('❌ Ошибка регистрации провайдеров:', err);
+  }
 
-  // ---- Добавляем все команды в subscriptions ----
   context.subscriptions.push(mergeCmd, miniCmd, currentFileCmd, treeListCmd);
 }
 
